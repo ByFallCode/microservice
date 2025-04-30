@@ -1,0 +1,73 @@
+
+services:
+  config-service:
+    build: ./config-service
+    image: config-service:local
+    ports:
+      - "9999:9999"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  discovery-service:
+    build: ./discovery-service
+    image: discovery:local
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  gateway-service:
+    build: ./gateway-service
+    image: gateway:local
+    ports:
+      - "8888:8888"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+
+  customer-service:
+    build: ./customer-service
+    image: customer-service:local
+    ports:
+      - "8081:8081"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+
+  inventory-service:
+    build: ./inventory-service
+    image: inventory-service:local
+    ports:
+      - "8082:8082"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+
+  billing-service:
+    build: ./billing-service
+    image: billing-service:local
+    ports:
+      - "8083:8083"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started

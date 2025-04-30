@@ -1,9 +1,8 @@
 package com.byfallcode.billingservice.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter @Setter
+@Getter @Setter @Builder @AllArgsConstructor @NoArgsConstructor
 public class Customer {
     private Long id;
     private String name;

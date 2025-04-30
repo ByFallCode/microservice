@@ -1,0 +1,59 @@
+services:
+  discovery-service:
+    build: ./discovery-service
+    image: discovery-service:local
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+
+  config-service:
+    build: ./config-service
+    image: config-service:local
+    ports:
+      - "9999:9999"
+  
+  customer-service:
+    build: ./customer-service
+    image: customer-service:local
+    ports:
+      - "8081:8081"
+    depends_on:
+      - discovery-service
+
+  inventory-service:
+    build: ./inventory-service
+    image: inventory-service:local
+    ports:
+      - "8082:8082"
+    depends_on:
+      - discovery-service
+
+  billing-service:
+    build: ./billing-service
+    image: billing-service:local
+    ports:
+      - "8083:8083"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+        restart: true
+      config-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+
+  gateway-service:
+    build: ./gateway-service
+    image: gateway-service:local
+    ports:
+      - "8888:8888"
+    depends_on:
+      - discovery-service
